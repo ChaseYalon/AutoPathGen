@@ -6,10 +6,11 @@
 #define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 54
 #include "../extern/raygui/src/raygui.h"
 #include "raylib.h"
+#include <cmath>
 #include <cstdio>
+#include <functional>
 #include <string>
 #include <vector>
-#include <functional>
 #define FIELD_WIDTH 16.540988f
 #define FIELD_HEIGHT 8.069326f
 #define SIDE_PANEL_WIDTH 500
@@ -28,15 +29,15 @@ Vector2 wpilibCoordsToPixels(float fieldX, float fieldY, float fieldWidth,
 }
 
 struct SidePanelElement {
-    std::string label;
-    int height;
-    std::function<void(Vector2)> execute;
-    SidePanelElement(std::string label, std::function<void(Vector2)> execute, int height){
-        this->label = label;
-        this->execute = execute;
-        this->height = height;
-    }
-
+  std::string label;
+  int height;
+  std::function<void(Vector2)> execute;
+  SidePanelElement(std::string label, std::function<void(Vector2)> execute,
+                   int height) {
+    this->label = label;
+    this->execute = execute;
+    this->height = height;
+  }
 };
 struct SidePanel {
   int width;
@@ -45,13 +46,45 @@ struct SidePanel {
     int screenWidth = GetScreenWidth();
     DrawRectangle(screenWidth - this->width, 0, 10, GetScreenHeight(),
                   LIGHTGRAY);
+    int totalHeight = 10;
+    for (int i = 0; i < this->elems.size(); i++) {
+      this->elems[i].execute(
+          (Vector2){static_cast<float>(screenWidth - this->width),
+                    static_cast<float>(totalHeight)});
+      totalHeight += this->elems[i].height;
+    }
   }
-  SidePanel() { 
+  SidePanel() {
     this->width = SIDE_PANEL_WIDTH;
     this->elems = {};
- }
+  }
 };
-
+struct Robot {
+  int x;
+  int y;
+  float r;
+  int radius = 30;
+  void draw() {
+    DrawCircle(this->x, this->y, this->radius, BLACK);
+    float angleRad = (this->r - 90) * (PI / 180.0f);
+    float lineLen = this->radius + 10;
+    Vector2 endPos = {
+        this->x + lineLen * cos(angleRad),
+        this->y + lineLen * sin(angleRad)
+    };
+    DrawLineEx((Vector2){(float)this->x, (float)this->y}, endPos, 7.0f, MAGENTA);
+  }
+  Robot(int x, int y, float r) {
+    this->x = x;
+    this->y = y;
+    this->r = r;
+  }
+  Robot() {
+    this->x = 0;
+    this->y = 0;
+    this->r = 0;
+  }
+};
 int main() {
   SidePanel s = SidePanel();
   Image field = LoadImage("../assets/field_v1.png");
@@ -83,7 +116,8 @@ int main() {
   GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
   GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, ColorToInt(BLACK));
   GuiSetStyle(DEFAULT, BASE_COLOR_NORMAL, ColorToInt(WHITE));
-  Vector2 robot;
+
+  Robot robotState;
 
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -116,19 +150,102 @@ int main() {
                      robotStartYText, 32, startYEditMode))
         startYEditMode = !startYEditMode;
 
-      // OK button
       if (GuiButton((Rectangle){popupX + popupWidth / 2 - 75,
                                 popupY + popupHeight - 80, 150, 50},
                     "OK")) {
         robotStartX = atof(robotStartXText);
         robotStartY = atof(robotStartYText);
         askForStartingPosition = false;
+
+        s.elems.push_back(SidePanelElement(
+            "Robot X",
+            [ptr = &robotStartX](Vector2 topLeft) {
+              GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+
+              GuiSetStyle(DEFAULT, TEXT_SIZE, 40);
+              GuiLabel((Rectangle){topLeft.x + 10, topLeft.y,
+                                   SIDE_PANEL_WIDTH - 20, 40},
+                       "Robot X (meters)");
+
+              GuiSetStyle(DEFAULT, TEXT_SIZE, 34);
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_RIGHT);
+              GuiLabel((Rectangle){topLeft.x + 10, topLeft.y + 45, 90, 40},
+                       TextFormat("%.2f", FIELD_WIDTH));
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+              GuiLabel((Rectangle){topLeft.x + SIDE_PANEL_WIDTH - 100,
+                                   topLeft.y + 45, 90, 40},
+                       "0");
+
+              float sliderVal = FIELD_WIDTH - *ptr;
+              GuiSlider((Rectangle){topLeft.x + 110, topLeft.y + 50,
+                                    SIDE_PANEL_WIDTH - 220, 30},
+                        "", "", &sliderVal, 0.0f, FIELD_WIDTH);
+              *ptr = FIELD_WIDTH - sliderVal;
+            },
+            110));
+
+        // Add Robot Y Slider
+        s.elems.push_back(SidePanelElement(
+            "Robot Y",
+            [ptr = &robotStartY](Vector2 topLeft) {
+              GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+
+              GuiSetStyle(DEFAULT, TEXT_SIZE, 40);
+              GuiLabel((Rectangle){topLeft.x + 10, topLeft.y,
+                                   SIDE_PANEL_WIDTH - 20, 40},
+                       "Robot Y (meters)");
+
+              GuiSetStyle(DEFAULT, TEXT_SIZE, 34);
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_RIGHT);
+              GuiLabel((Rectangle){topLeft.x + 10, topLeft.y + 45, 90, 40},
+                       "0");
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+              GuiLabel((Rectangle){topLeft.x + SIDE_PANEL_WIDTH - 100,
+                                   topLeft.y + 45, 90, 40},
+                       TextFormat("%.2f", FIELD_HEIGHT));
+
+              GuiSlider((Rectangle){topLeft.x + 110, topLeft.y + 50,
+                                    SIDE_PANEL_WIDTH - 220, 30},
+                        "", "", ptr, 0.0f, FIELD_HEIGHT);
+            },
+            110));
+
+        // Add Robot Rotation Slider
+        s.elems.push_back(SidePanelElement(
+            "Robot Heading",
+            [ptr = &robotState.r](Vector2 topLeft) {
+              GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+
+              GuiSetStyle(DEFAULT, TEXT_SIZE, 40);
+              GuiLabel((Rectangle){topLeft.x + 10, topLeft.y,
+                                   SIDE_PANEL_WIDTH - 20, 40},
+                       "Robot Heading (deg)");
+
+              GuiSetStyle(DEFAULT, TEXT_SIZE, 34);
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_RIGHT);
+              GuiLabel((Rectangle){topLeft.x + 10, topLeft.y + 45, 90, 40},
+                       "0");
+              GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+              GuiLabel((Rectangle){topLeft.x + SIDE_PANEL_WIDTH - 100,
+                                   topLeft.y + 45, 90, 40},
+                       "360");
+
+              GuiSlider((Rectangle){topLeft.x + 110, topLeft.y + 50,
+                                    SIDE_PANEL_WIDTH - 220, 30},
+                        "", "", ptr, 0.0f, 360.0f);
+            },
+            110));
       }
     } else {
-      robot =
+      Vector2 pixelPos =
           wpilibCoordsToPixels(robotStartX, robotStartY, FIELD_WIDTH,
                                FIELD_HEIGHT, fieldImageWidth, fieldImageHeight);
-      DrawCircle(robot.x, robot.y, 30.0f, BLACK);
+      robotState.x = (int)pixelPos.x;
+      robotState.y = (int)pixelPos.y;
+      robotState.draw();
     }
 
     EndDrawing();
