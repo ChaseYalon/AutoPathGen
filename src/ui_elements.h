@@ -5,32 +5,34 @@
 #include <string>
 #include <vector>
 
-struct TopBarElement {
-  std::string label;
-  int width;
-  std::function<void(Vector2)> execute;
-  TopBarElement(std::string label, std::function<void(Vector2)> execute,
-                int width);
+struct TopBarElement
+{
+	std::string label;
+	int width;
+	std::function<void(Vector2)> execute;
+	TopBarElement(std::string label, std::function<void(Vector2)> execute, int width);
 };
 
-struct TopBar {
-  int height;
-  std::vector<TopBarElement> elems;
-  void draw();
-  TopBar();
+struct TopBar
+{
+	int height;
+	std::vector<TopBarElement> elems;
+	void draw();
+	TopBar();
 };
 
-struct SidePanelElement {
-  std::string label;
-  int height;
-  std::function<void(Vector2)> execute;
-  SidePanelElement(std::string label, std::function<void(Vector2)> execute,
-                   int height);
+struct SidePanelElement
+{
+	std::string label;
+	int height;
+	std::function<void(Vector2)> execute;
+	SidePanelElement(std::string label, std::function<void(Vector2)> execute, int height);
 };
 
-struct SidePanel {
-  int width;
-  std::vector<SidePanelElement> elems;
-  void draw(int yOffset);
-  SidePanel();
+struct SidePanel
+{
+	int width;
+	std::vector<SidePanelElement> elems;
+	void draw(int yOffset);
+	SidePanel();
 };

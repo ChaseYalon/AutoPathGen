@@ -26,8 +26,6 @@ add_executable(auto_path_gen
 target_include_directories(${PROJECT_NAME} PUBLIC
     extern/raygui/src   # include Raygui headers
 )
-# Your executable
-
 
 
 # Link raylib statically

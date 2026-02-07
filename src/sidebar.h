@@ -2,5 +2,5 @@
 
 struct AppState;
 
-void updateSidebar(AppState &state);
-void initControlPanel(AppState &state);
+void updateSidebar(AppState& state);
+void initControlPanel(AppState& state);

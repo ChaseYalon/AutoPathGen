@@ -2,4 +2,4 @@
 
 struct AppState;
 
-void rebuildAutoRoutine(AppState &state);
+void rebuildAutoRoutine(AppState& state);

@@ -18,7 +18,6 @@ SpacesInParentheses: false
 SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false
 Cpp11BracedListStyle: true
-Standard: Cpp20
 
 # Pointer/reference alignment
 PointerAlignment: Left
