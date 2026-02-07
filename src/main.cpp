@@ -48,8 +48,15 @@ int main()
 	state.fieldImageWidth = field.width;
 	state.fieldImageHeight = field.height;
 
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 	InitWindow(state.fieldImageWidth + state.sidePanel.width,
 			   state.fieldImageHeight + state.topBar.height, "Combustible lemons 2026 path gen");
+
+	int virtualWidth = state.fieldImageWidth + state.sidePanel.width;
+	int virtualHeight = state.fieldImageHeight + state.topBar.height;
+	RenderTexture2D target = LoadRenderTexture(virtualWidth, virtualHeight);
+	SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
+	SetWindowMinSize(400, 300);
 
 	SetTargetFPS(60);
 	Texture2D texture = LoadTextureFromImage(field);
@@ -64,7 +71,6 @@ int main()
 	GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, ColorToInt(BLACK));
 	GuiSetStyle(DEFAULT, BASE_COLOR_NORMAL, ColorToInt(WHITE));
 
-	// --- Top Bar Buttons ---
 	state.topBar.elems.push_back(TopBarElement(
 		"Add Action",
 		[&state](Vector2 vec)
@@ -170,10 +176,16 @@ int main()
 
 	while (!WindowShouldClose())
 	{
-		BeginDrawing();
+		float scaleX = (float) GetScreenWidth() / virtualWidth;
+		float scaleY = (float) GetScreenHeight() / virtualHeight;
+
+		// Map mouse input to virtual space
+		SetMouseScale(1.0f / scaleX, 1.0f / scaleY);
+
+		BeginTextureMode(target);
 		ClearBackground(DARKGRAY);
 
-		state.topBar.draw();
+		state.topBar.draw(virtualWidth);
 
 		Vector2 mousePos = GetMousePosition();
 		if (CheckCollisionPointRec(mousePos, (Rectangle) {0, (float) state.topBar.height,
@@ -193,7 +205,7 @@ int main()
 
 			// Right align in top bar
 			DrawTextEx(roboto, text,
-					   (Vector2) {(float) GetScreenWidth() - textSize.x - 20,
+					   (Vector2) {(float) virtualWidth - textSize.x - 20,
 								  (state.topBar.height - textSize.y) / 2},
 					   textFontSize, spacing, BLACK);
 		}
@@ -204,7 +216,7 @@ int main()
 		handleWaypointSelection(state);
 		handleWaypointPlacement(state);
 
-		state.sidePanel.draw(state.topBar.height);
+		state.sidePanel.draw(state.topBar.height, virtualWidth, virtualHeight);
 
 		if (state.askForStartingPosition)
 		{
@@ -247,8 +259,17 @@ int main()
 
 		DrawAlerts(state);
 
+		EndTextureMode();
+
+		BeginDrawing();
+		ClearBackground(BLACK);
+		DrawTexturePro(target.texture,
+					   (Rectangle) {0.0f, 0.0f, (float) target.texture.width, (float) -target.texture.height},
+					   (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()},
+					   (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
 		EndDrawing();
 	}
+	UnloadRenderTexture(target);
 
 	UnloadFont(roboto);
 	UnloadTexture(texture);

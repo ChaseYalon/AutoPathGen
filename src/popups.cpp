@@ -9,7 +9,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 
 void drawStartingPositionPopup(AppState& state)
 {
@@ -20,6 +19,7 @@ void drawStartingPositionPopup(AppState& state)
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 48);
 	GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+	//TODO: Fix the margin around that text, it is to small
 	GuiWindowBox((Rectangle) {popupX, popupY, popupWidth, popupHeight},
 				 "Enter Robot Starting Position");
 	GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
@@ -474,14 +474,17 @@ void drawExportPopup(AppState& state)
 			}
 			outfile.close();
 			state.showExportPopup = false;
-			std::cout << "Saved code to " << state.exportFilePath << std::endl;
 			std::string msg = "Saved code to ";
 			msg += state.exportFilePath;
 			state.addAlert(msg, AlertType::Info);
 		}
 		else
 		{
-			std::cerr << "Failed to open file: " << state.exportFilePath << std::endl;
+			std::string msg = "Failed to open file \"";
+			msg += state.exportFilePath;
+			msg += "\". Does it exist?";
+
+			state.addAlert(msg, AlertType::Error);
 		}
 	}
 

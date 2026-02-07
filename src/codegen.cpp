@@ -4,6 +4,77 @@
 #include "utils.h"
 #include <cmath>
 
+WaypointContext calculateContext(const AppState& state, size_t i)
+{
+	WaypointContext ctx;
+
+	Vector2 prevPixelPos;
+	if (i == 0)
+	{
+		prevPixelPos = wpilibCoordsToPixels(state.robotStartX, state.robotStartY,
+											FIELD_WIDTH, FIELD_HEIGHT,
+											state.fieldImageWidth, state.fieldImageHeight);
+	}
+	else
+	{
+		prevPixelPos = {state.waypoints[i - 1].pos.x,
+						state.waypoints[i - 1].pos.y - state.topBar.height};
+	}
+	Vector2 currentPixelPos = {state.waypoints[i].pos.x,
+							   state.waypoints[i].pos.y - state.topBar.height};
+
+	Vector2 startField =
+		pixelsToWpilibCoords(prevPixelPos, FIELD_WIDTH, FIELD_HEIGHT, state.fieldImageWidth,
+							 state.fieldImageHeight);
+	Vector2 endField = pixelsToWpilibCoords(currentPixelPos, FIELD_WIDTH, FIELD_HEIGHT,
+											state.fieldImageWidth, state.fieldImageHeight);
+
+	ctx.dx = endField.x - startField.x;
+	ctx.dy = endField.y - startField.y;
+	ctx.dist = sqrtf(ctx.dx * ctx.dx + ctx.dy * ctx.dy);
+
+	ctx.distBlue = sqrtf(powf(endField.x - 4.6f, 2) + powf(endField.y - 4.0f, 2));
+	ctx.distRed = sqrtf(powf(endField.x - 12.0f, 2) + powf(endField.y - 4.0f, 2));
+
+	float prevHeading = (i == 0) ? state.robotState.r : state.waypoints[i - 1].heading;
+	ctx.heading = state.waypoints[i].heading;
+	ctx.deltaHeading = ctx.heading - prevHeading;
+
+	ctx.xCurrent = endField.x;
+	ctx.yCurrent = endField.y;
+
+	ctx.xNext = 0.0f;
+	if (i + 1 < state.waypoints.size())
+	{
+		Vector2 nextPixel = {state.waypoints[i + 1].pos.x,
+							 state.waypoints[i + 1].pos.y - state.topBar.height};
+		ctx.xNext = pixelsToWpilibCoords(nextPixel, FIELD_WIDTH, FIELD_HEIGHT,
+											 state.fieldImageWidth, state.fieldImageHeight)
+							.x;
+	}
+	return ctx;
+}
+
+std::string applyContext(std::string code, const WaypointContext& ctx, const std::vector<ProvidedVariable>& customVars)
+{
+	code = replaceAll(code, "xDistanceSinceLastWaypoint", getCoordFmt(ctx.dx));
+	code = replaceAll(code, "yDistanceSinceLastWaypoint", getCoordFmt(ctx.dy));
+	code = replaceAll(code, "distanceSinceLastWaypoint", getCoordFmt(ctx.dist));
+	code = replaceAll(code, "rotationsSinceLastWaypoint", getCoordFmt(ctx.deltaHeading));
+	code = replaceAll(code, "absoluteRotations", getCoordFmt(ctx.heading));
+	code = replaceAll(code, "xCordOfNextWaypoint", getCoordFmt(ctx.xNext));
+	code = replaceAll(code, "xCordOfCurrentWaypoint", getCoordFmt(ctx.xCurrent));
+	code = replaceAll(code, "yCordOfCurrentWaypoint", getCoordFmt(ctx.yCurrent));
+	code = replaceAll(code, "distanceFromBlueNet", getCoordFmt(ctx.distBlue));
+	code = replaceAll(code, "distanceFromRedNet", getCoordFmt(ctx.distRed));
+
+	for (const auto& cv : customVars)
+	{
+		code = replaceAll(code, cv.name, cv.value);
+	}
+	return code;
+}
+
 void rebuildAutoRoutine(AppState& state)
 {
 	state.autoRoutine.clear();
@@ -14,71 +85,13 @@ void rebuildAutoRoutine(AppState& state)
 
 	for (size_t i = 0; i < state.waypoints.size(); ++i)
 	{
+		WaypointContext ctx = calculateContext(state, i);
+
 		// 1. Add Drive Action (to reach this waypoint)
 		if (!state.driveActions.empty())
 		{
-			Vector2 prevPixelPos;
-			if (i == 0)
-			{
-				prevPixelPos = wpilibCoordsToPixels(state.robotStartX, state.robotStartY,
-													FIELD_WIDTH, FIELD_HEIGHT,
-													state.fieldImageWidth, state.fieldImageHeight);
-			}
-			else
-			{
-				prevPixelPos = {state.waypoints[i - 1].pos.x,
-								state.waypoints[i - 1].pos.y - state.topBar.height};
-			}
-			Vector2 currentPixelPos = {state.waypoints[i].pos.x,
-									   state.waypoints[i].pos.y - state.topBar.height};
-
-			Vector2 startField =
-				pixelsToWpilibCoords(prevPixelPos, FIELD_WIDTH, FIELD_HEIGHT, state.fieldImageWidth,
-									 state.fieldImageHeight);
-			Vector2 endField = pixelsToWpilibCoords(currentPixelPos, FIELD_WIDTH, FIELD_HEIGHT,
-													state.fieldImageWidth, state.fieldImageHeight);
-
-			float dx = endField.x - startField.x;
-			float dy = endField.y - startField.y;
-			float dist = sqrtf(dx * dx + dy * dy);
-
-			float distBlue = sqrtf(powf(endField.x - 4.6f, 2) + powf(endField.y - 4.0f, 2));
-			float distRed = sqrtf(powf(endField.x - 12.0f, 2) + powf(endField.y - 4.0f, 2));
-
-			float prevHeading = (i == 0) ? state.robotState.r : state.waypoints[i - 1].heading;
-			float currentHeading = state.waypoints[i].heading;
-			float deltaHeading = currentHeading - prevHeading;
-
-			float nextWaypointX = 0.0f;
-			if (i + 1 < state.waypoints.size())
-			{
-				Vector2 nextPixel = {state.waypoints[i + 1].pos.x,
-									 state.waypoints[i + 1].pos.y - state.topBar.height};
-				nextWaypointX = pixelsToWpilibCoords(nextPixel, FIELD_WIDTH, FIELD_HEIGHT,
-													 state.fieldImageWidth, state.fieldImageHeight)
-									.x;
-			}
-
 			Action driveAct = state.driveActions.back();
-			std::string code = driveAct.originalTemplate;
-			code = replaceAll(code, "xDistanceSinceLastWaypoint", getCoordFmt(dx));
-			code = replaceAll(code, "yDistanceSinceLastWaypoint", getCoordFmt(dy));
-			code = replaceAll(code, "distanceSinceLastWaypoint", getCoordFmt(dist));
-			code = replaceAll(code, "rotationsSinceLastWaypoint", getCoordFmt(deltaHeading));
-			code = replaceAll(code, "absoluteRotations", getCoordFmt(currentHeading));
-			code = replaceAll(code, "xCordOfNextWaypoint", getCoordFmt(nextWaypointX));
-			code = replaceAll(code, "xCordOfCurrentWaypoint", getCoordFmt(endField.x));
-			code = replaceAll(code, "yCordOfCurrentWaypoint", getCoordFmt(endField.y));
-			code = replaceAll(code, "distanceFromBlueNet", getCoordFmt(distBlue));
-			code = replaceAll(code, "distanceFromRedNet", getCoordFmt(distRed));
-
-			// Global custom vars
-			for (const auto& cv : currentVariables)
-			{
-				code = replaceAll(code, cv.name, cv.value);
-			}
-
-			driveAct.codegen = code;
+			driveAct.codegen = applyContext(driveAct.originalTemplate, ctx, currentVariables);
 			state.autoRoutine.push_back(driveAct);
 		}
 
@@ -101,66 +114,7 @@ void rebuildAutoRoutine(AppState& state)
 		for (const auto& actionTemplate : state.waypoints[i].boundActions)
 		{
 			Action instance = actionTemplate;  // Copy
-			std::string code = instance.originalTemplate;
-
-			// Recalculate context for bound actions at the waypoint
-			Vector2 prevPixelPos;
-			if (i == 0)
-			{
-				prevPixelPos = wpilibCoordsToPixels(state.robotStartX, state.robotStartY,
-													FIELD_WIDTH, FIELD_HEIGHT,
-													state.fieldImageWidth, state.fieldImageHeight);
-			}
-			else
-			{
-				prevPixelPos = {state.waypoints[i - 1].pos.x,
-								state.waypoints[i - 1].pos.y - state.topBar.height};
-			}
-			Vector2 currentPixelPos = {state.waypoints[i].pos.x,
-									   state.waypoints[i].pos.y - state.topBar.height};
-			Vector2 startField =
-				pixelsToWpilibCoords(prevPixelPos, FIELD_WIDTH, FIELD_HEIGHT, state.fieldImageWidth,
-									 state.fieldImageHeight);
-			Vector2 endField = pixelsToWpilibCoords(currentPixelPos, FIELD_WIDTH, FIELD_HEIGHT,
-													state.fieldImageWidth, state.fieldImageHeight);
-			float dx = endField.x - startField.x;
-			float dy = endField.y - startField.y;
-			float dist = sqrtf(dx * dx + dy * dy);
-
-			float distBlue = sqrtf(powf(endField.x - 4.6f, 2) + powf(endField.y - 4.0f, 2));
-			float distRed = sqrtf(powf(endField.x - 12.0f, 2) + powf(endField.y - 4.0f, 2));
-
-			float prevHeading = (i == 0) ? state.robotState.r : state.waypoints[i - 1].heading;
-			float currentHeading = state.waypoints[i].heading;
-			float deltaHeading = currentHeading - prevHeading;
-			float nextWaypointX = 0.0f;
-			if (i + 1 < state.waypoints.size())
-			{
-				Vector2 nextPixel = {state.waypoints[i + 1].pos.x,
-									 state.waypoints[i + 1].pos.y - state.topBar.height};
-				nextWaypointX = pixelsToWpilibCoords(nextPixel, FIELD_WIDTH, FIELD_HEIGHT,
-													 state.fieldImageWidth, state.fieldImageHeight)
-									.x;
-			}
-
-			code = replaceAll(code, "xDistanceSinceLastWaypoint", getCoordFmt(dx));
-			code = replaceAll(code, "yDistanceSinceLastWaypoint", getCoordFmt(dy));
-			code = replaceAll(code, "distanceSinceLastWaypoint", getCoordFmt(dist));
-			code = replaceAll(code, "rotationsSinceLastWaypoint", getCoordFmt(deltaHeading));
-			code = replaceAll(code, "absoluteRotations", getCoordFmt(currentHeading));
-			code = replaceAll(code, "xCordOfNextWaypoint", getCoordFmt(nextWaypointX));
-			code = replaceAll(code, "xCordOfCurrentWaypoint", getCoordFmt(endField.x));
-			code = replaceAll(code, "yCordOfCurrentWaypoint", getCoordFmt(endField.y));
-			code = replaceAll(code, "distanceFromBlueNet", getCoordFmt(distBlue));
-			code = replaceAll(code, "distanceFromRedNet", getCoordFmt(distRed));
-
-			// Replace Custom Vars (using currentVariables context)
-			for (const auto& cv : currentVariables)
-			{
-				code = replaceAll(code, cv.name, cv.value);
-			}
-
-			instance.codegen = code;
+			instance.codegen = applyContext(instance.originalTemplate, ctx, currentVariables);
 			state.autoRoutine.push_back(instance);
 			LOG_DEBUG("Added bound action %s at WP %d", instance.name.c_str(), (int) i);
 		}

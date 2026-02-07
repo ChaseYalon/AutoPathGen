@@ -19,7 +19,7 @@ struct TopBar
 {
 	int height;
 	std::vector<TopBarElement> elems;
-	void draw();
+	void draw(int screenWidth);
 	TopBar();
 };
 
@@ -35,6 +35,6 @@ struct SidePanel
 {
 	int width;
 	std::vector<SidePanelElement> elems;
-	void draw(int yOffset);
+	void draw(int yOffset, int screenWidth, int screenHeight);
 	SidePanel();
 };

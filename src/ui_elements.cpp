@@ -11,9 +11,9 @@ TopBar::TopBar() : height(50)
 {
 }
 
-void TopBar::draw()
+void TopBar::draw(int screenWidth)
 {
-	DrawRectangle(0, 0, GetScreenWidth(), height, LIGHTGRAY);
+	DrawRectangle(0, 0, screenWidth, height, LIGHTGRAY);
 	int currentX = 10;
 	for (size_t i = 0; i < elems.size(); i++)
 	{
@@ -33,10 +33,9 @@ SidePanel::SidePanel() : width(SIDE_PANEL_WIDTH)
 {
 }
 
-void SidePanel::draw(int yOffset)
+void SidePanel::draw(int yOffset, int screenWidth, int screenHeight)
 {
-	int screenWidth = GetScreenWidth();
-	DrawRectangle(screenWidth - width, yOffset, 10, GetScreenHeight() - yOffset, LIGHTGRAY);
+	DrawRectangle(screenWidth - width, yOffset, 10, screenHeight - yOffset, LIGHTGRAY);
 	int totalHeight = 10 + yOffset;
 	for (size_t i = 0; i < elems.size(); i++)
 	{

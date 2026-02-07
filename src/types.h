@@ -43,6 +43,15 @@ struct VariableChange
 	VariableChange(std::string n, std::string v);
 };
 
+struct WaypointContext
+{
+	float dx, dy, dist;
+	float heading, deltaHeading;
+	float distBlue, distRed;
+	float xCurrent, yCurrent;
+	float xNext;
+};
+
 struct Waypoint
 {
 	Vector2 pos;
