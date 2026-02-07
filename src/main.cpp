@@ -11,12 +11,34 @@
 #include "sidebar.h"
 #include "utils.h"
 #include <cstring>
+#include <string>
 
 int main()
 {
 	AppState state;
+    const char* appDir = GetApplicationDirectory();
+    std::string baseDir = appDir;
+    std::string assetDir = baseDir + "assets/";
+    
+    if (!FileExists((assetDir + "field_v1.png").c_str())) {
+        std::string parentDir = baseDir + "../assets/";
+        if (FileExists((parentDir + "field_v1.png").c_str())) {
+            assetDir = parentDir;
+        } else {
+             std::string grandParentDir = baseDir + "../../assets/";
+             if (FileExists((grandParentDir + "field_v1.png").c_str())) {
+                 assetDir = grandParentDir;
+             }
+        }
+    }
 
-	Image field = LoadImage("../assets/field_v1.png");
+    TraceLog(LOG_INFO, "ASSETS: Detected asset directory: %s", assetDir.c_str());
+
+	Image field = LoadImage((assetDir + "field_v1.png").c_str());
+    if (field.width == 0) {
+        TraceLog(LOG_WARNING, "ASSETS: Could not load field_v1.png, using placeholder");
+        field = GenImageColor(1200, 600, GRAY);
+    }
 	state.fieldImageWidth = field.width;
 	state.fieldImageHeight = field.height;
 
@@ -27,7 +49,7 @@ int main()
 	Texture2D texture = LoadTextureFromImage(field);
 	UnloadImage(field);
 
-	Font roboto = LoadFont("../assets/Roboto-Black.ttf");
+	Font roboto = LoadFont((assetDir + "Roboto-Black.ttf").c_str());
 	GuiSetFont(roboto);
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 32);  // bigger text
@@ -127,11 +149,18 @@ int main()
 			GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
 		},
 		260));
+        
+    Image icon = LoadImage((assetDir + "icon.png").c_str());
+    if (icon.width > 0) {
+        SetWindowIcon(icon);
+        UnloadImage(icon);
+    } else {
+        TraceLog(LOG_WARNING, "ASSETS: Could not load icon.png");
+    }
 
-	// --- Main Loop ---
 	while (!WindowShouldClose())
 	{
-		BeginDrawing();
+        BeginDrawing();
 		ClearBackground(DARKGRAY);
 
 		state.topBar.draw();
