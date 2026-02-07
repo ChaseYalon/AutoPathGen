@@ -1,6 +1,6 @@
 [Setup]
 AppName=Auto Path Generator
-AppVersion=1.0.0
+AppVersion=0.2
 DefaultDirName={pf}\AutoPathGen
 DefaultGroupName=Auto Path Generator
 OutputBaseFilename=AutoPathGenInstaller

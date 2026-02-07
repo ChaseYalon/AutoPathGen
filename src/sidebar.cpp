@@ -3,6 +3,7 @@
 #include "codegen.h"
 #include "constants.h"
 #include "raygui_config.h"
+#include "utils.h"
 
 void initControlPanel(AppState& state)
 {
@@ -81,6 +82,25 @@ void initControlPanel(AppState& state)
 					  "", &state.robotState.r, 0.0f, 360.0f);
 		},
 		110));
+
+	state.controlPanelElems.push_back(SidePanelElement(
+		"Curve Quality",
+		[&state](Vector2 topLeft)
+		{
+			GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
+			GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+
+			GuiSetStyle(DEFAULT, TEXT_SIZE, 40);
+			GuiLabel((Rectangle) {topLeft.x + 10, topLeft.y, SIDE_PANEL_WIDTH - 20, 40},
+					 TextFormat("Curve Steps (N: %d)", state.bezierSubdivisions));
+
+			GuiSetStyle(DEFAULT, TEXT_SIZE, 34);
+			float val = (float) state.bezierSubdivisions;
+			GuiSlider((Rectangle) {topLeft.x + 40, topLeft.y + 50, SIDE_PANEL_WIDTH - 80, 30}, "1",
+					  "50", &val, 1.0f, 50.0f);
+			state.bezierSubdivisions = (int) val;
+		},
+		110));
 }
 
 void updateSidebar(AppState& state)
@@ -101,6 +121,94 @@ void updateSidebar(AppState& state)
 						 "Edit Waypoint");
 			},
 			50));
+
+		state.sidePanel.elems.push_back(SidePanelElement(
+			"Waypoint X Slider",
+			[&state, wpIdx](Vector2 topLeft)
+			{
+				Vector2 currentPixel = state.waypoints[wpIdx].pos;
+				Vector2 pixelForCalc = {state.waypoints[wpIdx].pos.x,
+										state.waypoints[wpIdx].pos.y - state.topBar.height};
+
+				Vector2 fieldPos =
+					pixelsToWpilibCoords(pixelForCalc, FIELD_WIDTH, FIELD_HEIGHT,
+										 state.fieldImageWidth, state.fieldImageHeight);
+
+				GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
+				GuiLabel((Rectangle) {topLeft.x + 10, topLeft.y, 60, 30}, "X:");
+				GuiLabel((Rectangle) {topLeft.x + SIDE_PANEL_WIDTH - 60, topLeft.y, 50, 30},
+						 TextFormat("%.2f", fieldPos.x));
+
+				float val = fieldPos.x;
+				float oldVal = val;
+				GuiSlider((Rectangle) {topLeft.x + 70, topLeft.y, SIDE_PANEL_WIDTH - 140, 30}, "",
+						  "", &val, 0.0f, FIELD_WIDTH);
+
+				if (val != oldVal)
+				{
+					// Update X
+					Vector2 newPixelBase =
+						wpilibCoordsToPixels(val, fieldPos.y, FIELD_WIDTH, FIELD_HEIGHT,
+											 state.fieldImageWidth, state.fieldImageHeight);
+					// This returns pixel relative to field image (0,0)
+					// Add top bar
+					Vector2 newPos = {newPixelBase.x, newPixelBase.y + state.topBar.height};
+
+					Vector2 delta = {newPos.x - state.waypoints[wpIdx].pos.x,
+									 newPos.y - state.waypoints[wpIdx].pos.y};
+
+					state.waypoints[wpIdx].pos = newPos;
+					state.waypoints[wpIdx].handleIn.x += delta.x;
+					state.waypoints[wpIdx].handleIn.y += delta.y;
+					state.waypoints[wpIdx].handleOut.x += delta.x;
+					state.waypoints[wpIdx].handleOut.y += delta.y;
+
+					rebuildAutoRoutine(state);
+				}
+			},
+			40));
+
+		state.sidePanel.elems.push_back(SidePanelElement(
+			"Waypoint Y Slider",
+			[&state, wpIdx](Vector2 topLeft)
+			{
+				Vector2 pixelForCalc = {state.waypoints[wpIdx].pos.x,
+										state.waypoints[wpIdx].pos.y - state.topBar.height};
+				Vector2 fieldPos =
+					pixelsToWpilibCoords(pixelForCalc, FIELD_WIDTH, FIELD_HEIGHT,
+										 state.fieldImageWidth, state.fieldImageHeight);
+
+				GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
+				GuiLabel((Rectangle) {topLeft.x + 10, topLeft.y, 60, 30}, "Y:");
+				GuiLabel((Rectangle) {topLeft.x + SIDE_PANEL_WIDTH - 60, topLeft.y, 50, 30},
+						 TextFormat("%.2f", fieldPos.y));
+
+				float val = fieldPos.y;
+				float oldVal = val;
+				GuiSlider((Rectangle) {topLeft.x + 70, topLeft.y, SIDE_PANEL_WIDTH - 140, 30}, "",
+						  "", &val, 0.0f, FIELD_HEIGHT);
+
+				if (val != oldVal)
+				{
+					// Update Y
+					Vector2 newPixelBase =
+						wpilibCoordsToPixels(fieldPos.x, val, FIELD_WIDTH, FIELD_HEIGHT,
+											 state.fieldImageWidth, state.fieldImageHeight);
+					Vector2 newPos = {newPixelBase.x, newPixelBase.y + state.topBar.height};
+
+					Vector2 delta = {newPos.x - state.waypoints[wpIdx].pos.x,
+									 newPos.y - state.waypoints[wpIdx].pos.y};
+
+					state.waypoints[wpIdx].pos = newPos;
+					state.waypoints[wpIdx].handleIn.x += delta.x;
+					state.waypoints[wpIdx].handleIn.y += delta.y;
+					state.waypoints[wpIdx].handleOut.x += delta.x;
+					state.waypoints[wpIdx].handleOut.y += delta.y;
+
+					rebuildAutoRoutine(state);
+				}
+			},
+			40));
 
 		state.sidePanel.elems.push_back(SidePanelElement(
 			"Heading Slider",

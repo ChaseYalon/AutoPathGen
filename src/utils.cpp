@@ -38,3 +38,24 @@ std::string getCoordFmt(float f)
 	snprintf(buf, sizeof(buf), "%.2f", f);
 	return std::string(buf);
 }
+
+Segment GetSegmentPoints(const AppState& state, size_t i)
+{
+	Vector2 p0, p1, p2, p3;
+
+	if (i == 0)
+	{
+		p0 = {(float) state.robotState.x, (float) state.robotState.y};
+		p1 = state.robotState.handleOut;
+	}
+	else
+	{
+		p0 = state.waypoints[i - 1].pos;
+		p1 = state.waypoints[i - 1].handleOut;
+	}
+
+	p2 = state.waypoints[i].handleIn;
+	p3 = state.waypoints[i].pos;
+
+	return Segment(p0, p1, p2, p3);
+}

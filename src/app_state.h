@@ -11,6 +11,9 @@ struct AppState
 	int fieldImageWidth;
 	int fieldImageHeight;
 
+	// Global Curve Settings
+	int bezierSubdivisions;
+
 	// UI elements
 	TopBar topBar;
 	SidePanel sidePanel;
@@ -46,6 +49,7 @@ struct AppState
 	bool placingWaypoint;
 	bool viewingActions;
 	int selectedWaypointIndex;
+	int draggingHandleMode;	 // 0: None, 1: Waypoint, 2: HandleIn, 3: HandleOut, 4: RobotHandleOut
 
 	// Action form buffers
 	char actionName[128];

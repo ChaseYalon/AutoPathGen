@@ -34,6 +34,7 @@ struct SidePanelElement
 struct SidePanel
 {
 	int width;
+	Vector2 scroll;
 	std::vector<SidePanelElement> elems;
 	void draw(int yOffset, int screenWidth, int screenHeight);
 	SidePanel();

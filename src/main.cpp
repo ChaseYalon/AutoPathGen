@@ -10,6 +10,7 @@
 #include "raygui_config.h"
 #include "sidebar.h"
 #include "utils.h"
+#include "constants.h"
 #include <cstring>
 #include <string>
 
@@ -213,7 +214,7 @@ int main()
 		DrawTexture(texture, 0, state.topBar.height, WHITE);
 
 		drawWaypoints(state);
-		handleWaypointSelection(state);
+		handleWaypointInput(state);
 		handleWaypointPlacement(state);
 
 		state.sidePanel.draw(state.topBar.height, virtualWidth, virtualHeight);
@@ -263,10 +264,11 @@ int main()
 
 		BeginDrawing();
 		ClearBackground(BLACK);
-		DrawTexturePro(target.texture,
-					   (Rectangle) {0.0f, 0.0f, (float) target.texture.width, (float) -target.texture.height},
-					   (Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()},
-					   (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
+		DrawTexturePro(
+			target.texture,
+			(Rectangle) {0.0f, 0.0f, (float) target.texture.width, (float) -target.texture.height},
+			(Rectangle) {0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight()},
+			(Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
 		EndDrawing();
 	}
 	UnloadRenderTexture(target);

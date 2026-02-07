@@ -6,6 +6,7 @@
 AppState::AppState()
 	: fieldImageWidth(0),
 	  fieldImageHeight(0),
+	  bezierSubdivisions(7),
 	  robotStartX(0),
 	  robotStartY(0),
 	  startXEditMode(false),
@@ -19,6 +20,7 @@ AppState::AppState()
 	  placingWaypoint(false),
 	  viewingActions(false),
 	  selectedWaypointIndex(-1),
+	  draggingHandleMode(0),
 	  actionNameEditMode(false),
 	  actionCodeEditMode(false),
 	  showAddVariableForm(false),

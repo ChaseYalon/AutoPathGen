@@ -19,7 +19,7 @@ void drawStartingPositionPopup(AppState& state)
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 48);
 	GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-	//TODO: Fix the margin around that text, it is to small
+	// TODO: Fix the margin around that text, it is to small
 	GuiWindowBox((Rectangle) {popupX, popupY, popupWidth, popupHeight},
 				 "Enter Robot Starting Position");
 	GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
@@ -50,7 +50,7 @@ void drawStartingPositionPopup(AppState& state)
 
 void drawAddActionPopup(AppState& state)
 {
-	const float popupWidth = 800;
+	float popupWidth = 800;
 	int totalVars = (int) state.providedVariables.size() + (int) state.customVariables.size();
 	int varRows = (totalVars + 1) / 2;
 	float varSectionHeight = varRows * 30.0f;

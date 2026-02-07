@@ -56,9 +56,24 @@ struct Waypoint
 {
 	Vector2 pos;
 	float heading;
+	// Bezier handles
+	Vector2 handleIn;
+	Vector2 handleOut;
+
 	std::vector<Action> boundActions;
 	std::vector<VariableChange> variableChanges;
 	Waypoint(Vector2 p, float h = 0.0f);
+};
+
+struct Segment
+{
+	Vector2 p0;	 // Start Point
+	Vector2 p1;	 // Start Handle (Outgoing)
+	Vector2 p2;	 // End Handle (Incoming)
+	Vector2 p3;	 // End Point
+
+	Segment(Vector2 start, Vector2 startHandleOut, Vector2 endHandleIn, Vector2 end);
+	Vector2 evaluate(float t) const;
 };
 
 struct Robot
@@ -67,6 +82,7 @@ struct Robot
 	int y;
 	float r;
 	int radius;
+	Vector2 handleOut;
 	void draw();
 	Robot(int x, int y, float r);
 	Robot();
