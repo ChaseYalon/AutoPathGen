@@ -1,0 +1,30 @@
+# Rust-like formatting with tabs for C++
+BasedOnStyle: Google
+IndentWidth: 4        # width of a tab for alignment purposes
+TabWidth: 4           # width of a tab character
+UseTab: Always        # use actual tab characters for indentation
+ContinuationIndentWidth: 4
+ColumnLimit: 100
+
+# Braces and blocks
+BreakBeforeBraces: Allman    # Functions and classes start on a new line
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# Spaces
+SpaceAfterCStyleCast: true
+SpacesInParentheses: false
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+Cpp11BracedListStyle: true
+Standard: Cpp20
+
+# Pointer/reference alignment
+PointerAlignment: Left
+
+# Other readability options
+AlignTrailingComments: true
+SortIncludes: false
+ReflowComments: true
+DerivePointerAlignment: false

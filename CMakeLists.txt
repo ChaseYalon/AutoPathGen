@@ -10,7 +10,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE) # force static build
 add_subdirectory(extern/raylib)
 
-add_executable(auto_path_gen src/main.cpp)
+add_executable(auto_path_gen
+    src/main.cpp
+    src/raygui_impl.cpp
+    src/utils.cpp
+    src/types.cpp
+    src/ui_elements.cpp
+    src/app_state.cpp
+    src/codegen.cpp
+    src/sidebar.cpp
+    src/popups.cpp
+    src/field_renderer.cpp
+)
 #raygui
 target_include_directories(${PROJECT_NAME} PUBLIC
     extern/raygui/src   # include Raygui headers
