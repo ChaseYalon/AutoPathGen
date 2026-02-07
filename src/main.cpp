@@ -16,29 +16,35 @@
 int main()
 {
 	AppState state;
-    const char* appDir = GetApplicationDirectory();
-    std::string baseDir = appDir;
-    std::string assetDir = baseDir + "assets/";
-    
-    if (!FileExists((assetDir + "field_v1.png").c_str())) {
-        std::string parentDir = baseDir + "../assets/";
-        if (FileExists((parentDir + "field_v1.png").c_str())) {
-            assetDir = parentDir;
-        } else {
-             std::string grandParentDir = baseDir + "../../assets/";
-             if (FileExists((grandParentDir + "field_v1.png").c_str())) {
-                 assetDir = grandParentDir;
-             }
-        }
-    }
+	const char* appDir = GetApplicationDirectory();
+	std::string baseDir = appDir;
+	std::string assetDir = baseDir + "assets/";
 
-    TraceLog(LOG_INFO, "ASSETS: Detected asset directory: %s", assetDir.c_str());
+	if (!FileExists((assetDir + "field_v1.png").c_str()))
+	{
+		std::string parentDir = baseDir + "../assets/";
+		if (FileExists((parentDir + "field_v1.png").c_str()))
+		{
+			assetDir = parentDir;
+		}
+		else
+		{
+			std::string grandParentDir = baseDir + "../../assets/";
+			if (FileExists((grandParentDir + "field_v1.png").c_str()))
+			{
+				assetDir = grandParentDir;
+			}
+		}
+	}
+
+	TraceLog(LOG_INFO, "ASSETS: Detected asset directory: %s", assetDir.c_str());
 
 	Image field = LoadImage((assetDir + "field_v1.png").c_str());
-    if (field.width == 0) {
-        TraceLog(LOG_WARNING, "ASSETS: Could not load field_v1.png, using placeholder");
-        field = GenImageColor(1200, 600, GRAY);
-    }
+	if (field.width == 0)
+	{
+		TraceLog(LOG_WARNING, "ASSETS: Could not load field_v1.png, using placeholder");
+		field = GenImageColor(1200, 600, GRAY);
+	}
 	state.fieldImageWidth = field.width;
 	state.fieldImageHeight = field.height;
 
@@ -51,6 +57,7 @@ int main()
 
 	Font roboto = LoadFont((assetDir + "Roboto-Black.ttf").c_str());
 	GuiSetFont(roboto);
+	state.uiFont = roboto;
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 32);  // bigger text
 	GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
@@ -149,18 +156,21 @@ int main()
 			GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
 		},
 		260));
-        
-    Image icon = LoadImage((assetDir + "icon.png").c_str());
-    if (icon.width > 0) {
-        SetWindowIcon(icon);
-        UnloadImage(icon);
-    } else {
-        TraceLog(LOG_WARNING, "ASSETS: Could not load icon.png");
-    }
+
+	Image icon = LoadImage((assetDir + "icon.png").c_str());
+	if (icon.width > 0)
+	{
+		SetWindowIcon(icon);
+		UnloadImage(icon);
+	}
+	else
+	{
+		TraceLog(LOG_WARNING, "ASSETS: Could not load icon.png");
+	}
 
 	while (!WindowShouldClose())
 	{
-        BeginDrawing();
+		BeginDrawing();
 		ClearBackground(DARKGRAY);
 
 		state.topBar.draw();
@@ -234,6 +244,8 @@ int main()
 		{
 			drawAddVarChangePopup(state);
 		}
+
+		DrawAlerts(state);
 
 		EndDrawing();
 	}

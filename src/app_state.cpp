@@ -47,3 +47,8 @@ AppState::AppState()
 						 ProvidedVariable("distanceFromBlueNet", "0.0"),
 						 ProvidedVariable("distanceFromRedNet", "0.0")};
 }
+
+void AppState::addAlert(std::string msg, AlertType type, float duration)
+{
+	alerts.emplace_back(msg, type, duration);
+}

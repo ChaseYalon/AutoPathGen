@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+struct AppState;
+
 struct TopBarElement
 {
 	std::string label;

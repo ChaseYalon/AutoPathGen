@@ -62,10 +62,17 @@ struct AppState
 	bool variableNameEditMode;
 	bool variableValueEditMode;
 
+	// Alerts
+	std::vector<Alert> alerts;
+	void addAlert(std::string msg, AlertType type, float duration = 5.0f);
+
 	// Export Popup
 	bool showExportPopup;
 	char exportFilePath[256];
 	bool exportPathEditMode;
+
+	// UI Resources
+	Font uiFont;
 
 	AppState();
 };

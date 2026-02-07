@@ -1,5 +1,6 @@
 #include "ui_elements.h"
 #include "constants.h"
+#include <cstdio>
 
 TopBarElement::TopBarElement(std::string label, std::function<void(Vector2)> execute, int width)
 	: label(std::move(label)), execute(std::move(execute)), width(width)

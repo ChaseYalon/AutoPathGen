@@ -1,5 +1,11 @@
 #include "types.h"
 #include <cmath>
+
+Alert::Alert(std::string msg, AlertType t, float d)
+	: message(std::move(msg)), type(t), creationTime((float) GetTime()), duration(d)
+{
+}
+
 ProvidedVariable::ProvidedVariable(std::string name, std::string value)
 	: name(std::move(name)), value(std::move(value))
 {

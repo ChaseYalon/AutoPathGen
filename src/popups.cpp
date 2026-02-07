@@ -3,7 +3,9 @@
 #include "codegen.h"
 #include "constants.h"
 #include "raygui_config.h"
+#include "raylib.h"
 #include "sidebar.h"
+#include "types.h"
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -160,7 +162,6 @@ void drawAddActionToWaypointPopup(AppState& state)
 	GuiWindowBox((Rectangle) {popupX, popupY, popupWidth, popupHeight}, "Add Action to Waypoint");
 	GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
 
-	// --- CONTENT SECTION (Checkboxes) ---
 	GuiLabel((Rectangle) {popupX + 20, popupY + 60, 400, 30}, "Select actions to bind:");
 	float actionY = popupY + 100;
 	int actionCount = 0;
@@ -276,6 +277,72 @@ void drawAddVariablePopup(AppState& state)
 	if (GuiButton((Rectangle) {popupX + 380, popupY + popupHeight - 60, 200, 40}, "Cancel"))
 	{
 		state.showAddVariableForm = false;
+	}
+}
+
+void DrawAlerts(AppState& state)
+{
+	float currentTime = (float) GetTime();
+	// Remove expired alerts
+	for (size_t i = 0; i < state.alerts.size();)
+	{
+		if (currentTime - state.alerts[i].creationTime > state.alerts[i].duration)
+		{
+			state.alerts.erase(state.alerts.begin() + i);
+		}
+		else
+		{
+			i++;
+		}
+	}
+
+	float startY = (float) state.topBar.height + 10;
+
+	for (const auto& alert : state.alerts)
+	{
+		float fontSize = 56.0f;
+		float spacing = 2.8f;
+		Vector2 textSize = MeasureTextEx(state.uiFont, alert.message.c_str(), fontSize, spacing);
+
+		float width = textSize.x + 56.0f;
+		float height = textSize.y + 56.0f;
+
+		// Center on field image
+		float x = (state.fieldImageWidth - width) / 2.0f;
+
+		Color bgColor = WHITE;
+		switch (alert.type)
+		{
+			case AlertType::Error:
+				bgColor = {255, 148, 166, 255};
+				break;
+			case AlertType::Warning:
+				bgColor = {255, 219, 148, 255};
+				break;
+			case AlertType::Info:
+				bgColor = {169, 255, 148, 255};
+				break;
+		}
+
+		DrawRectangleRec({x, startY, width, height}, bgColor);
+		DrawRectangleLinesEx({x, startY, width, height}, 3, BLACK);
+
+		Vector2 textPos = {x + (width - textSize.x) / 2.0f, startY + (height - textSize.y) / 2.0f};
+
+		DrawTextEx(state.uiFont, alert.message.c_str(), textPos, fontSize, spacing, BLACK);
+
+		float elapsed = currentTime - alert.creationTime;
+
+		float remaining = alert.duration - elapsed;
+		float progress = remaining / alert.duration;
+		if (progress < 0)
+			progress = 0;
+
+		float sliderHeight = 20.0f;	 // 300% bigger (5 * 4 used here)
+		DrawRectangleRec({x, startY + height - sliderHeight, width * progress, sliderHeight},
+						 (Color) {0, 0, 0, 100});  // Semi-transparent black for the bar
+
+		startY += height + 10;
 	}
 }
 
@@ -408,6 +475,9 @@ void drawExportPopup(AppState& state)
 			outfile.close();
 			state.showExportPopup = false;
 			std::cout << "Saved code to " << state.exportFilePath << std::endl;
+			std::string msg = "Saved code to ";
+			msg += state.exportFilePath;
+			state.addAlert(msg, AlertType::Info);
 		}
 		else
 		{

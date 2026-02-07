@@ -4,6 +4,22 @@
 #include <string>
 #include <vector>
 
+enum class AlertType
+{
+	Error,
+	Warning,
+	Info
+};
+
+struct Alert
+{
+	std::string message;
+	AlertType type;
+	float creationTime;
+	float duration;
+	Alert(std::string msg, AlertType t, float d = 5.0f);
+};
+
 struct ProvidedVariable
 {
 	std::string name;

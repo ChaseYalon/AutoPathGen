@@ -66,8 +66,12 @@ void handleWaypointPlacement(AppState& state)
 		{
 			if (state.driveActions.empty())
 			{
-				TraceLog(LOG_FATAL, "NO DRIVE ACTION TEMPLATE DEFINED. ABORTING.");
-				exit(1);
+				TraceLog(LOG_WARNING, "NO DRIVE ACTION TEMPLATE DEFINED. ABORTING.");
+				// exit(1); // Don't crash
+				state.addAlert("Create a drive action before placing a waypoint!",
+							   AlertType::Error);
+				state.placingWaypoint = false;
+				return;
 			}
 
 			Vector2 mousePos = GetMousePosition();
