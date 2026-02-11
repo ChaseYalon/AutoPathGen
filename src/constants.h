@@ -7,8 +7,7 @@
 #define LOG_DEBUG(...)
 #else
 #define LOG_DEBUG(...)       \
-	do                       \
-	{                        \
+	do {                     \
 		printf("[DEBUG] ");  \
 		printf(__VA_ARGS__); \
 		printf("\n");        \

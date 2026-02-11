@@ -4,15 +4,9 @@
 #include <string>
 #include <vector>
 
-enum class AlertType
-{
-	Error,
-	Warning,
-	Info
-};
+enum class AlertType { Error, Warning, Info };
 
-struct Alert
-{
+struct Alert {
 	std::string message;
 	AlertType type;
 	float creationTime;
@@ -20,31 +14,29 @@ struct Alert
 	Alert(std::string msg, AlertType t, float d = 5.0f);
 };
 
-struct ProvidedVariable
-{
+struct ProvidedVariable {
 	std::string name;
 	std::string value;
 	ProvidedVariable(std::string name, std::string value);
 };
 
-struct Action
-{
+struct Action {
 	std::string name;
 	std::string codegen;
 	std::string originalTemplate;
 	std::vector<ProvidedVariable> usedVariables;
-	Action(std::string name, std::string codegen, std::vector<ProvidedVariable> usedVariables);
+	Action(
+		std::string name, std::string codegen, std::vector<ProvidedVariable> usedVariables
+	);
 };
 
-struct VariableChange
-{
+struct VariableChange {
 	std::string name;
 	std::string newValue;
 	VariableChange(std::string n, std::string v);
 };
 
-struct WaypointContext
-{
+struct WaypointContext {
 	float dx, dy, dist;
 	float heading, deltaHeading;
 	float distBlue, distRed;
@@ -52,8 +44,7 @@ struct WaypointContext
 	float xNext;
 };
 
-struct Waypoint
-{
+struct Waypoint {
 	Vector2 pos;
 	float heading;
 	// Bezier handles
@@ -65,8 +56,7 @@ struct Waypoint
 	Waypoint(Vector2 p, float h = 0.0f);
 };
 
-struct Segment
-{
+struct Segment {
 	Vector2 p0;	 // Start Point
 	Vector2 p1;	 // Start Handle (Outgoing)
 	Vector2 p2;	 // End Handle (Incoming)
@@ -76,8 +66,7 @@ struct Segment
 	Vector2 evaluate(float t) const;
 };
 
-struct Robot
-{
+struct Robot {
 	int x;
 	int y;
 	float r;

@@ -2,39 +2,34 @@
 #include <cmath>
 
 Alert::Alert(std::string msg, AlertType t, float d)
-	: message(std::move(msg)), type(t), creationTime((float) GetTime()), duration(d)
-{
+	: message(std::move(msg)), type(t), creationTime((float) GetTime()), duration(d) {
 }
 
 ProvidedVariable::ProvidedVariable(std::string name, std::string value)
-	: name(std::move(name)), value(std::move(value))
-{
+	: name(std::move(name)), value(std::move(value)) {
 }
 
-Action::Action(std::string name, std::string codegen, std::vector<ProvidedVariable> usedVariables)
+Action::Action(
+	std::string name, std::string codegen, std::vector<ProvidedVariable> usedVariables
+)
 	: name(std::move(name)),
 	  codegen(codegen),
 	  originalTemplate(codegen),
-	  usedVariables(std::move(usedVariables))
-{
+	  usedVariables(std::move(usedVariables)) {
 }
 
 VariableChange::VariableChange(std::string n, std::string v)
-	: name(std::move(n)), newValue(std::move(v))
-{
+	: name(std::move(n)), newValue(std::move(v)) {
 }
 
-Waypoint::Waypoint(Vector2 p, float h) : pos(p), heading(h), handleIn(p), handleOut(p)
-{
+Waypoint::Waypoint(Vector2 p, float h) : pos(p), heading(h), handleIn(p), handleOut(p) {
 }
 
 Segment::Segment(Vector2 start, Vector2 startHandleOut, Vector2 endHandleIn, Vector2 end)
-	: p0(start), p1(startHandleOut), p2(endHandleIn), p3(end)
-{
+	: p0(start), p1(startHandleOut), p2(endHandleIn), p3(end) {
 }
 
-Vector2 Segment::evaluate(float t) const
-{
+Vector2 Segment::evaluate(float t) const {
 	float u = 1.0f - t;
 	float tt = t * t;
 	float uu = u * u;
@@ -48,16 +43,13 @@ Vector2 Segment::evaluate(float t) const
 }
 
 Robot::Robot(int x, int y, float r)
-	: x(x), y(y), r(r), radius(30), handleOut({(float) x, (float) y})
-{
+	: x(x), y(y), r(r), radius(30), handleOut({(float) x, (float) y}) {
 }
 
-Robot::Robot() : x(0), y(0), r(0), radius(30), handleOut({0, 0})
-{
+Robot::Robot() : x(0), y(0), r(0), radius(30), handleOut({0, 0}) {
 }
 
-void Robot::draw()
-{
+void Robot::draw() {
 	DrawCircle(x, y, radius, BLACK);
 	float angleRad = (r - 90) * (PI / 180.0f);
 	float lineLen = radius + 10;
